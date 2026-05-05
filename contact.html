@@ -294,6 +294,20 @@
       border-color: #ffd700;
     }
 
+    footer {
+      width: 100%;
+      max-width: 520px;
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--card-border);
+      text-align: center;
+    }
+
+    footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.2rem; margin-bottom: 0.8rem; }
+    footer nav a { color: var(--label-color); text-decoration: none; font-size: 0.82rem; opacity: 0.7; transition: opacity 0.2s; }
+    footer nav a:hover { opacity: 1; color: #ffd700; }
+    footer p { color: var(--label-color); font-size: 0.78rem; opacity: 0.6; }
+
     @media (max-width: 480px) {
       .row { grid-template-columns: 1fr; }
       .card { padding: 2rem 1.2rem; }
@@ -362,6 +376,16 @@
       ✅ 문의가 성공적으로 접수되었습니다!<br>빠른 시일 내에 연락드리겠습니다.
     </div>
   </div>
+
+  <footer>
+    <nav aria-label="사이트 내비게이션">
+      <a href="index.html">🎰 로또 생성기</a>
+      <a href="animal-test.html">🐶 동물상 테스트</a>
+      <a href="contact.html">🤝 제휴 문의</a>
+      <a href="privacy.html">🔒 개인정보처리방침</a>
+    </nav>
+    <p>© 2026 AI 도구 모음. 본 서비스는 오락 목적으로 제공됩니다.</p>
+  </footer>
 
   <script>
     const html = document.documentElement;
