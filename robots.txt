@@ -1,0 +1,9 @@
+# 모든 검색로봇 허용
+User-agent: *
+Allow: /
+
+# 네이버 검색로봇(Yeti) 명시 허용
+User-agent: Yeti
+Allow: /
+
+Sitemap: https://smartrobby.github.io/product-builder-lecture/sitemap.xml
