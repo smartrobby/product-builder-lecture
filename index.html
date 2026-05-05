@@ -221,17 +221,22 @@
       transform: none;
     }
 
-    #contact-link {
+    .link-group {
+      display: flex;
+      gap: 1.5rem;
       margin-top: 1.5rem;
+    }
+
+    .nav-link {
       color: var(--title-color);
       font-size: 0.9rem;
       font-weight: 600;
       text-decoration: none;
       opacity: 0.6;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, color 0.4s;
     }
 
-    #contact-link:hover {
+    .nav-link:hover {
       opacity: 1;
     }
 
@@ -279,7 +284,10 @@
     <button id="btn-save" onclick="saveImage()">💾 이미지 저장</button>
   </div>
 
-  <a href="contact.html" id="contact-link">🤝 제휴 문의하기</a>
+  <div class="link-group">
+    <a href="animal-test.html" class="nav-link">🐶 동물상 테스트</a>
+    <a href="contact.html" class="nav-link">🤝 제휴 문의하기</a>
+  </div>
 
   <div id="comments-section">
     <h2>💬 댓글</h2>
