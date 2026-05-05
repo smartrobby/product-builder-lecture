@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,23 +12,75 @@
       padding: 0;
     }
 
+    :root[data-theme="dark"] {
+      --bg: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      --bg-solid: #16213e;
+      --title-color: #fff;
+      --ticket-bg: rgba(255, 255, 255, 0.05);
+      --ticket-border: rgba(255, 255, 255, 0.1);
+      --separator-color: rgba(255, 255, 255, 0.5);
+      --theme-btn-bg: rgba(255, 255, 255, 0.1);
+      --theme-btn-color: #fff;
+      --theme-btn-border: rgba(255, 255, 255, 0.2);
+      --theme-btn-hover: rgba(255, 255, 255, 0.2);
+    }
+
+    :root[data-theme="light"] {
+      --bg: linear-gradient(135deg, #f0f4ff, #e8f0fe, #dce8ff);
+      --bg-solid: #e8f0fe;
+      --title-color: #1a1a2e;
+      --ticket-bg: rgba(255, 255, 255, 0.7);
+      --ticket-border: rgba(0, 0, 0, 0.1);
+      --separator-color: rgba(0, 0, 0, 0.4);
+      --theme-btn-bg: rgba(26, 26, 46, 0.08);
+      --theme-btn-color: #1a1a2e;
+      --theme-btn-border: rgba(26, 26, 46, 0.15);
+      --theme-btn-hover: rgba(26, 26, 46, 0.15);
+    }
+
     body {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      background: var(--bg);
       font-family: 'Segoe UI', sans-serif;
       padding: 2rem;
+      transition: background 0.4s;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+    }
+
+    #btn-theme {
+      background: var(--theme-btn-bg);
+      color: var(--theme-btn-color);
+      border: 1px solid var(--theme-btn-border);
+      border-radius: 50px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      backdrop-filter: blur(8px);
+    }
+
+    #btn-theme:hover {
+      background: var(--theme-btn-hover);
+      transform: translateY(-2px);
     }
 
     h1 {
-      color: #fff;
+      color: var(--title-color);
       font-size: 2rem;
       margin-bottom: 2rem;
       letter-spacing: 2px;
       text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+      transition: color 0.4s;
     }
 
     h1 span {
@@ -45,15 +97,15 @@
     }
 
     .ticket {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--ticket-bg);
+      border: 1px solid var(--ticket-border);
       border-radius: 16px;
       padding: 1rem 1.4rem;
       display: flex;
       align-items: center;
       gap: 0.8rem;
       backdrop-filter: blur(8px);
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.4s, border-color 0.4s;
     }
 
     .ticket:hover {
@@ -96,11 +148,11 @@
     }
 
     .separator {
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--separator-color);
       font-size: 1.4rem;
       font-weight: 300;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.3s, color 0.4s;
     }
 
     .separator.show {
@@ -112,7 +164,6 @@
       outline-offset: 2px;
     }
 
-    /* 번호대별 색상 */
     .ball.range-1 { background: linear-gradient(135deg, #f5c518, #e0a800); }
     .ball.range-2 { background: linear-gradient(135deg, #4fc3f7, #0288d1); }
     .ball.range-3 { background: linear-gradient(135deg, #ef5350, #b71c1c); }
@@ -172,6 +223,10 @@
   </style>
 </head>
 <body>
+  <div class="top-bar">
+    <button id="btn-theme" onclick="toggleTheme()">☀️ 라이트 모드</button>
+  </div>
+
   <h1>🎰 <span>로또</span> 번호 생성기</h1>
 
   <div class="tickets" id="tickets">
@@ -188,13 +243,30 @@
   </div>
 
   <script>
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('btn-theme');
+
+    function toggleTheme() {
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeBtn.textContent = isDark ? '🌙 다크 모드' : '☀️ 라이트 모드';
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    (function applyStoredTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        html.setAttribute('data-theme', 'light');
+        themeBtn.textContent = '🌙 다크 모드';
+      }
+    })();
+
     function pickNumbers() {
       const pool = Array.from({ length: 45 }, (_, i) => i + 1);
       for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pool[i], pool[j]] = [pool[j], pool[i]];
       }
-      // 앞 6개: 일반 번호, 7번째: 보너스
       const main = pool.slice(0, 6).sort((a, b) => a - b);
       const bonus = pool[6];
       return { main, bonus };
@@ -224,7 +296,6 @@
           `<span class="separator">+</span>` +
           bonusHTML;
 
-        // 순서대로 등장 애니메이션 (일반 6개 → 구분자 → 보너스)
         const items = container.querySelectorAll('.ball, .separator');
         items.forEach((el, i) => {
           setTimeout(() => el.classList.add('show'), i * 80);
@@ -238,9 +309,10 @@
       btn.textContent = '저장 중...';
 
       const target = document.getElementById('tickets');
+      const isDark = html.getAttribute('data-theme') === 'dark';
 
       html2canvas(target, {
-        backgroundColor: '#16213e',
+        backgroundColor: isDark ? '#16213e' : '#e8f0fe',
         scale: 2,
         useCORS: true,
         logging: false,
