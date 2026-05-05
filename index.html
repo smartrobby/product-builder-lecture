@@ -220,6 +220,20 @@
       cursor: not-allowed;
       transform: none;
     }
+
+    #contact-link {
+      margin-top: 1.5rem;
+      color: var(--title-color);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    #contact-link:hover {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -241,6 +255,8 @@
     <button id="btn-generate" onclick="generate()">🎲 번호 생성</button>
     <button id="btn-save" onclick="saveImage()">💾 이미지 저장</button>
   </div>
+
+  <a href="contact.html" id="contact-link">🤝 제휴 문의하기</a>
 
   <script>
     const html = document.documentElement;
