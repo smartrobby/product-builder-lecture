@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동물상 테스트 🐶🐱</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root[data-theme="dark"] {
+      --bg: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --title-color: #fff;
+      --text-color: rgba(255, 255, 255, 0.8);
+      --sub-color: rgba(255, 255, 255, 0.5);
+      --theme-btn-bg: rgba(255, 255, 255, 0.1);
+      --theme-btn-color: #fff;
+      --theme-btn-border: rgba(255, 255, 255, 0.2);
+      --theme-btn-hover: rgba(255, 255, 255, 0.2);
+      --bar-bg: rgba(255, 255, 255, 0.1);
+      --result-bg: rgba(255, 255, 255, 0.07);
+    }
+
+    :root[data-theme="light"] {
+      --bg: linear-gradient(135deg, #f0f4ff, #e8f0fe, #dce8ff);
+      --card-bg: rgba(255, 255, 255, 0.75);
+      --card-border: rgba(0, 0, 0, 0.1);
+      --title-color: #1a1a2e;
+      --text-color: #333;
+      --sub-color: #888;
+      --theme-btn-bg: rgba(26, 26, 46, 0.08);
+      --theme-btn-color: #1a1a2e;
+      --theme-btn-border: rgba(26, 26, 46, 0.15);
+      --theme-btn-hover: rgba(26, 26, 46, 0.15);
+      --bar-bg: rgba(0, 0, 0, 0.08);
+      --result-bg: rgba(255, 255, 255, 0.6);
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: var(--bg);
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem 1rem 4rem;
+      transition: background 0.4s;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+    }
+
+    #btn-theme {
+      background: var(--theme-btn-bg);
+      color: var(--theme-btn-color);
+      border: 1px solid var(--theme-btn-border);
+      border-radius: 50px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      backdrop-filter: blur(8px);
+    }
+
+    #btn-theme:hover {
+      background: var(--theme-btn-hover);
+      transform: translateY(-2px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+      margin-top: 1rem;
+    }
+
+    h1 {
+      color: var(--title-color);
+      font-size: 2rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+      margin-bottom: 0.5rem;
+      transition: color 0.4s;
+    }
+
+    h1 span { color: #ffd700; }
+
+    .subtitle {
+      color: var(--sub-color);
+      font-size: 0.95rem;
+      transition: color 0.4s;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 520px;
+      backdrop-filter: blur(12px);
+      transition: background 0.4s, border-color 0.4s;
+    }
+
+    /* 웹캠 영역 */
+    .webcam-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 1.5rem;
+    }
+
+    #webcam-canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+    }
+
+    .webcam-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 0.95rem;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .webcam-overlay.hidden { display: none; }
+
+    .webcam-icon { font-size: 3rem; }
+
+    /* 결과 영역 */
+    .result-box {
+      background: var(--result-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      display: none;
+      transition: background 0.4s;
+    }
+
+    .result-box.visible { display: block; }
+
+    .result-animal {
+      font-size: 4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .result-label {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ffd700;
+      margin-bottom: 0.3rem;
+    }
+
+    .result-desc {
+      color: var(--sub-color);
+      font-size: 0.85rem;
+      transition: color 0.4s;
+    }
+
+    /* 확률 바 */
+    .bars { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem; }
+
+    .bar-item { display: flex; flex-direction: column; gap: 0.3rem; }
+
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-color);
+      transition: color 0.4s;
+    }
+
+    .bar-track {
+      height: 10px;
+      background: var(--bar-bg);
+      border-radius: 99px;
+      overflow: hidden;
+      transition: background 0.4s;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .bar-fill.dog  { background: linear-gradient(90deg, #f5c518, #ff8c00); }
+    .bar-fill.cat  { background: linear-gradient(90deg, #a78bfa, #ec4899); }
+    .bar-fill.other { background: linear-gradient(90deg, #43e97b, #38f9d7); }
+
+    /* 버튼 */
+    .btn-primary {
+      width: 100%;
+      border: none;
+      border-radius: 50px;
+      padding: 0.95rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a2e;
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(255, 215, 0, 0.5);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(26,26,46,0.3);
+      border-top-color: #1a1a2e;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-text {
+      text-align: center;
+      color: var(--sub-color);
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      min-height: 1.2em;
+      transition: color 0.4s;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.5rem; }
+      .card { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button id="btn-theme" onclick="toggleTheme()">☀️ 라이트 모드</button>
+  </div>
+
+  <div class="header">
+    <h1>🐶 <span>동물상</span> 테스트 🐱</h1>
+    <p class="subtitle">나는 강아지상? 고양이상? AI가 분석해드립니다</p>
+  </div>
+
+  <div class="card">
+    <div class="webcam-wrap">
+      <canvas id="webcam-canvas"></canvas>
+      <div class="webcam-overlay" id="overlay">
+        <div class="webcam-icon">📷</div>
+        <div>버튼을 눌러 카메라를 시작하세요</div>
+      </div>
+    </div>
+
+    <div class="result-box" id="result-box">
+      <div class="result-animal" id="result-emoji"></div>
+      <div class="result-label" id="result-label"></div>
+      <div class="result-desc" id="result-desc"></div>
+    </div>
+
+    <div class="bars" id="bars"></div>
+
+    <button class="btn-primary" id="btn-start" onclick="startCamera()">📷 카메라 시작</button>
+    <p class="status-text" id="status"></p>
+  </div>
+
+  <script>
+    const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/cBZUv1i_N/';
+
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('btn-theme');
+
+    function toggleTheme() {
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeBtn.textContent = isDark ? '🌙 다크 모드' : '☀️ 라이트 모드';
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    (function applyStoredTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        html.setAttribute('data-theme', 'light');
+        themeBtn.textContent = '🌙 다크 모드';
+      }
+    })();
+
+    const ANIMAL_META = {
+      강아지: { emoji: '🐶', desc: '충성스럽고 친근한 강아지상이에요! 사람들에게 호감을 주는 인상입니다 🦴' },
+      고양이: { emoji: '🐱', desc: '도도하고 매력적인 고양이상이에요! 신비로운 분위기를 풍깁니다 🐾' },
+    };
+
+    function getAnimalMeta(label) {
+      for (const key of Object.keys(ANIMAL_META)) {
+        if (label.includes(key)) return { key, ...ANIMAL_META[key] };
+      }
+      return { key: label, emoji: '🐾', desc: '독특하고 개성 있는 동물상이에요!' };
+    }
+
+    function getBarClass(label) {
+      if (label.includes('강아지')) return 'dog';
+      if (label.includes('고양이')) return 'cat';
+      return 'other';
+    }
+
+    let model, webcam, animating = false;
+
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    function setBtn(label, disabled = false) {
+      const btn = document.getElementById('btn-start');
+      btn.innerHTML = label;
+      btn.disabled = disabled;
+    }
+
+    async function startCamera() {
+      setBtn('<span class="loading-spinner"></span>모델 로딩 중...', true);
+      setStatus('AI 모델을 불러오는 중입니다...');
+      try {
+        if (!model) {
+          model = await tmImage.load(MODEL_URL + 'model.json', MODEL_URL + 'metadata.json');
+        }
+
+        setStatus('카메라 권한을 허용해주세요...');
+        const flip = true;
+        webcam = new tmImage.Webcam(400, 400, flip);
+        await webcam.setup();
+        await webcam.play();
+
+        document.getElementById('webcam-canvas').replaceWith(webcam.canvas);
+        webcam.canvas.id = 'webcam-canvas';
+
+        document.getElementById('overlay').classList.add('hidden');
+
+        initBars(model.getTotalClasses(), model.getClassLabels());
+
+        animating = true;
+        requestAnimationFrame(loop);
+
+        setBtn('🔄 다시 테스트', false);
+        btn_start_mode = 'retry';
+        document.getElementById('btn-start').onclick = retryTest;
+        setStatus('얼굴을 카메라에 가까이 대주세요 😊');
+      } catch (e) {
+        setBtn('📷 카메라 시작', false);
+        setStatus('카메라를 시작할 수 없습니다. 권한을 확인해주세요.');
+      }
+    }
+
+    function retryTest() {
+      document.getElementById('result-box').classList.remove('visible');
+      document.getElementById('bars').querySelectorAll('.bar-fill').forEach(b => b.style.width = '0%');
+      setStatus('얼굴을 카메라에 가까이 대주세요 😊');
+    }
+
+    function initBars(count, labels) {
+      const container = document.getElementById('bars');
+      container.innerHTML = '';
+      labels.forEach((label, i) => {
+        container.innerHTML += `
+          <div class="bar-item">
+            <div class="bar-header">
+              <span>${label}</span>
+              <span id="pct-${i}">0%</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill ${getBarClass(label)}" id="bar-${i}"></div>
+            </div>
+          </div>`;
+      });
+    }
+
+    let frameCount = 0;
+
+    async function loop() {
+      if (!animating) return;
+      webcam.update();
+      frameCount++;
+
+      if (frameCount % 10 === 0) {
+        const preds = await model.predict(webcam.canvas);
+        updateUI(preds);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    function updateUI(preds) {
+      preds.forEach((p, i) => {
+        const pct = Math.round(p.probability * 100);
+        const bar = document.getElementById(`bar-${i}`);
+        const pctEl = document.getElementById(`pct-${i}`);
+        if (bar) bar.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+      });
+
+      const top = preds.reduce((a, b) => a.probability > b.probability ? a : b);
+      if (top.probability > 0.6) {
+        const meta = getAnimalMeta(top.className);
+        document.getElementById('result-emoji').textContent = meta.emoji;
+        document.getElementById('result-label').textContent = meta.key + '상';
+        document.getElementById('result-desc').textContent = meta.desc;
+        document.getElementById('result-box').classList.add('visible');
+        setStatus('');
+      }
+    }
+  </script>
+</body>
+</html>
