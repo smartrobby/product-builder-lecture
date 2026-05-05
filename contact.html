@@ -22,6 +22,8 @@
       --input-color: #fff;
       --input-focus: rgba(255, 215, 0, 0.5);
       --placeholder: rgba(255, 255, 255, 0.3);
+      --option-bg: #16213e;
+      --option-color: #fff;
       --theme-btn-bg: rgba(255, 255, 255, 0.1);
       --theme-btn-color: #fff;
       --theme-btn-border: rgba(255, 255, 255, 0.2);
@@ -42,6 +44,8 @@
       --input-color: #1a1a2e;
       --input-focus: rgba(255, 140, 0, 0.5);
       --placeholder: rgba(0, 0, 0, 0.3);
+      --option-bg: #fff;
+      --option-color: #1a1a2e;
       --theme-btn-bg: rgba(26, 26, 46, 0.08);
       --theme-btn-color: #1a1a2e;
       --theme-btn-border: rgba(26, 26, 46, 0.15);
@@ -146,8 +150,8 @@
     }
 
     select option {
-      background: #16213e;
-      color: #fff;
+      background: var(--option-bg);
+      color: var(--option-color);
     }
 
     input:focus, select:focus, textarea:focus {
